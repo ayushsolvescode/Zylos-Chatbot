@@ -50,6 +50,22 @@ except Exception:
 if not OPENROUTER_API_KEY:
     OPENROUTER_API_KEY = os.getenv(OPENROUTER_API_KEY_ENV_VAR, "")
 
+st.set_page_config(page_title="ZYLOS", page_icon="🤖", layout="wide")
+
+# Initialize the conversation and document state in Streamlit session_state.
+# This must happen before UI access so uploaded documents and message counts
+# can be safely referenced during the first run.
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+if "summary" not in st.session_state:
+    st.session_state.summary = ""
+if "message_count" not in st.session_state:
+    st.session_state.message_count = 0
+if "uploaded_documents" not in st.session_state:
+    st.session_state.uploaded_documents = {}
+if "prioritized_document" not in st.session_state:
+    st.session_state.prioritized_document = "None"
+
 # File upload helpers for .txt, .pdf, and .docx documents.
 # Uploaded text is stored in session_state so it can be reused later in the
 # session without re-parsing the file on every rerun.
@@ -290,21 +306,6 @@ with st.sidebar:
         st.session_state.message_count = 0
         st.session_state.uploaded_documents = {}
         st.experimental_rerun()
-
-# Initialize the conversation history in session_state on first run.
-if "messages" not in st.session_state:
-    st.session_state.messages = []
-if "summary" not in st.session_state:
-    st.session_state.summary = ""
-if "message_count" not in st.session_state:
-    # Track how many messages the user has sent in this browser session.
-    # This protects against accidental overuse of the free OpenRouter quota by
-    # stopping requests once the session reaches a safe default limit.
-    st.session_state.message_count = 0
-if "uploaded_documents" not in st.session_state:
-    st.session_state.uploaded_documents = {}
-if "prioritized_document" not in st.session_state:
-    st.session_state.prioritized_document = "None"
 
 
 def stream_openrouter(messages: list, model: str):
